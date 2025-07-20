@@ -1,40 +1,55 @@
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 export interface ParsedMeeting {
-  title?: string
-  date?: string
-  time?: string
-  duration?: number
-  attendees?: string[]
-  location?: string
-  description?: string
+  title?: string;
+  date?: string;
+  time?: string;
+  duration?: number;
+  attendees?: string[];
+  location?: string;
+  description?: string;
 }
 
-export async function parseMeetingPrompt(prompt: string): Promise<ParsedMeeting> {
-  // This would integrate with OpenAI API or similar
-  // to parse natural language and extract meeting details
+export async function parseMeetingPrompt(
+  prompt: string
+): Promise<ParsedMeeting> {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: `Today's date is ${
+            new Date().toISOString().split("T")[0]
+          }. Extract meeting details from natural language. Return ONLY valid JSON:
+          {
+            "title": "meeting title",
+            "date": "YYYY-MM-DD", 
+            "time": "HH:MM",
+            "duration": minutes_as_number,
+            "attendees": ["Name1", "Name2"],
+            "location": "location or null",
+            "description": "summary"
+          }
+          
+          For relative dates like "tomorrow", "next week", calculate from today's date.
+          For attendees, extract NAMES only, not emails. Example:
+          "Meeting with John and Sarah" → "attendees": ["John", "Sarah"]`,
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
 
-  // Example implementation using OpenAI:
-  // const completion = await openai.chat.completions.create({
-  //   model: "gpt-4",
-  //   messages: [
-  //     {
-  //       role: "system",
-  //       content: "Extract meeting details from the user's natural language description. Return JSON with title, date, time, duration, attendees, location, and description."
-  //     },
-  //     {
-  //       role: "user",
-  //       content: prompt
-  //     }
-  //   ],
-  // });
-
-  // For now, return a mock parsed result
-  return {
-    title: "Team Meeting",
-    date: "2024-01-15",
-    time: "10:00",
-    duration: 60,
-    attendees: ["john@example.com", "sarah@example.com"],
-    location: "Conference Room A",
-    description: prompt,
+    return JSON.parse(completion.choices[0].message.content || "{}");
+  } catch (error) {
+    console.error("AI parsing error:", error);
+    return { description: prompt };
   }
 }

@@ -30,21 +30,31 @@ export default function AISchedulerLanding() {
   const currentYear = new Date().getFullYear();
 
   const handleSchedule = async () => {
-    if (!prompt.trim()) return;
+  if (!prompt.trim()) return;
 
-    setIsLoading(true);
-    try {
-      // Simulate AI processing and Google Calendar integration
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setResult(
-        "Meeting successfully scheduled! Check your Google Calendar for details."
-      );
-    } catch (error) {
-      setResult("Failed to schedule meeting. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  setIsLoading(true);
+  try {
+    console.log("🚀 Calling API...");
+    
+    const response = await fetch('/api/schedule', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt }),
+    });
+
+    const data = await response.json();
+    console.log("📨 API response:", data);
+    
+    setResult(data.message || "Meeting scheduled successfully!");
+  } catch (error) {
+    console.error("❌ Error:", error);
+    setResult("Failed to schedule meeting. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const features = [
     {

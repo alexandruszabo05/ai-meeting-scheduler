@@ -1,25 +1,27 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt } = await request.json()
+    console.log("🚀 API route called");
+    const { prompt } = await request.json();
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Prompt is required" },
+        { status: 400 }
+      );
     }
+
+    console.log("🤖 Parsing with AI:", prompt);
+    const { parseMeetingPrompt } = await import("@/lib/ai-parser");
+    const meetingDetails = await parseMeetingPrompt(prompt);
+    console.log("✅ Parsed result:", meetingDetails);
 
     // Here you would integrate with:
     // 1. OpenAI API to parse the meeting details from the prompt
     // 2. Google Calendar API to create the meeting
 
     // Simulated AI processing
-    const meetingDetails = {
-      title: "Extracted Meeting Title",
-      startTime: new Date().toISOString(),
-      endTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-      attendees: ["example@email.com"],
-      description: prompt,
-    }
 
     // Simulated Google Calendar integration
     // const calendarEvent = await createGoogleCalendarEvent(meetingDetails)
@@ -28,9 +30,12 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Meeting scheduled successfully",
       details: meetingDetails,
-    })
+    });
   } catch (error) {
-    console.error("Error scheduling meeting:", error)
-    return NextResponse.json({ error: "Failed to schedule meeting" }, { status: 500 })
+    console.error("Error scheduling meeting:", error);
+    return NextResponse.json(
+      { error: "Failed to schedule meeting" },
+      { status: 500 }
+    );
   }
 }
