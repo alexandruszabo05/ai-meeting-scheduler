@@ -30,31 +30,38 @@ export default function AISchedulerLanding() {
   const currentYear = new Date().getFullYear();
 
   const handleSchedule = async () => {
-  if (!prompt.trim()) return;
+    if (!prompt.trim()) return;
 
-  setIsLoading(true);
-  try {
-    console.log("🚀 Calling API...");
-    
-    const response = await fetch('/api/schedule', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ prompt }),
-    });
+    setIsLoading(true);
+    try {
+      console.log("🚀 Calling API...");
 
-    const data = await response.json();
-    console.log("📨 API response:", data);
-    
-    setResult(data.message || "Meeting scheduled successfully!");
-  } catch (error) {
-    console.error("❌ Error:", error);
-    setResult("Failed to schedule meeting. Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+      const response = await fetch("/api/schedule", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      const data = await response.json();
+      console.log("📨 API response:", data);
+
+      if (data.success && data.calendarUrl) {
+        window.open(data.calendarUrl, "_blank");
+        setResult(
+          "Calendar opened! Click 'Save' in Google Calendar to add the event."
+        );
+      } else {
+        setResult(data.message || "Meeting parsed successfully!");
+      }
+    } catch (error) {
+      console.error("❌ Error:", error);
+      setResult("Failed to schedule meeting. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const features = [
     {
@@ -247,7 +254,7 @@ export default function AISchedulerLanding() {
                 {result && (
                   <div
                     className={`p-4 rounded-lg ${
-                      result.includes("successfully")
+                      result.includes("Calendar opened")
                         ? "bg-green-500/10 border border-green-500/20 text-green-400"
                         : "bg-red-500/10 border border-red-500/20 text-red-400"
                     }`}
@@ -382,7 +389,7 @@ export default function AISchedulerLanding() {
                 step: "3",
                 title: "Calendar Sync",
                 description:
-                  "Meeting is automatically created in Google Calendar with invites sent to all participants",
+                  "Meeting is automatically created in Google Calendar.",
               },
             ].map((item, index) => (
               <motion.div
@@ -398,9 +405,8 @@ export default function AISchedulerLanding() {
                   {item.step}
                 </div>
 
-                {/* Connecting line (except for last item) */}
                 {index < 2 && (
-                  <div className="absolute left-6 top-12 w-0.75 h-24 bg-gradient-to-b from-purple-500 to-blue-500 opacity-60"></div>
+                  <div className="absolute left-6 top-12 w-0.75 h-32 bg-gradient-to-b from-purple-500 to-blue-500 opacity-60"></div>
                 )}
 
                 {/* Content */}

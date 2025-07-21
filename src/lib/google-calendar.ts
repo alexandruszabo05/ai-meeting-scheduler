@@ -1,41 +1,60 @@
+import { ParsedMeeting } from "./ai-parser";
+
 export interface MeetingDetails {
-  title: string
-  startTime: string
-  endTime: string
-  attendees: string[]
-  description: string
-  location?: string
+  title: string;
+  startTime: string;
+  endTime: string;
+  attendees: string[];
+  description: string;
+  location?: string;
 }
 
-export async function createGoogleCalendarEvent(details: MeetingDetails) {
-  // This would integrate with Google Calendar API
-  // You'll need to:
-  // 1. Set up Google Cloud Console project
-  // 2. Enable Calendar API
-  // 3. Set up OAuth2 credentials
-  // 4. Use google-auth-library and googleapis packages
+export function createGoogleCalendarUrl(details: MeetingDetails): string {
+  const formatDate = (isoDate: string) => {
+    return (
+      new Date(isoDate).toISOString().replace(/[-:]/g, "").split(".")[0] + "Z"
+    );
+  };
 
-  const event = {
-    summary: details.title,
-    description: details.description,
-    start: {
-      dateTime: details.startTime,
-      timeZone: "America/Los_Angeles",
-    },
-    end: {
-      dateTime: details.endTime,
-      timeZone: "America/Los_Angeles",
-    },
-    attendees: details.attendees.map((email) => ({ email })),
-    location: details.location,
-  }
+  const startTime = formatDate(details.startTime);
+  const endTime = formatDate(details.endTime);
 
-  // Example implementation:
-  // const calendar = google.calendar({ version: 'v3', auth });
-  // const response = await calendar.events.insert({
-  //   calendarId: 'primary',
-  //   resource: event,
-  // });
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: details.title,
+    dates: `${startTime}/${endTime}`,
+    details: details.description,
+    location: details.location || "",
+  });
 
-  return event
+  return `https://calendar.google.com/calendar/render?${params}`;
+}
+
+// Helper function to convert ParsedMeeting to MeetingDetails
+export function adaptParsedToCalendar(
+  parsed: ParsedMeeting,
+  prompt: string
+): MeetingDetails {
+  // Calculate actual dates
+  const today = new Date();
+  const meetingDate = parsed.date ? new Date(parsed.date) : today;
+
+  // Parse time (default 9 AM if not specified)
+  const timeStr = parsed.time || "09:00";
+  const [hours, minutes] = timeStr.split(":").map(Number);
+
+  const startDateTime = new Date(meetingDate);
+  startDateTime.setHours(hours, minutes, 0, 0);
+
+  const endDateTime = new Date(startDateTime);
+  endDateTime.setMinutes(startDateTime.getMinutes() + (parsed.duration || 60));
+
+  return {
+    title: parsed.title || "Meeting",
+    startTime: startDateTime.toISOString(),
+    endTime: endDateTime.toISOString(),
+    attendees: parsed.attendees || [],
+    description: parsed.description || prompt,
+    location: parsed.location,
+  };
 }
