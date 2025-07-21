@@ -30,16 +30,13 @@ export function createGoogleCalendarUrl(details: MeetingDetails): string {
   return `https://calendar.google.com/calendar/render?${params}`;
 }
 
-// Helper function to convert ParsedMeeting to MeetingDetails
 export function adaptParsedToCalendar(
   parsed: ParsedMeeting,
   prompt: string
 ): MeetingDetails {
-  // Calculate actual dates
   const today = new Date();
   const meetingDate = parsed.date ? new Date(parsed.date) : today;
 
-  // Parse time (default 9 AM if not specified)
   const timeStr = parsed.time || "09:00";
   const [hours, minutes] = timeStr.split(":").map(Number);
 
