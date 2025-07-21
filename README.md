@@ -2,7 +2,7 @@
 
 AI-powered meeting scheduler that understands natural language and automatically creates Google Calendar events.
 
-## 🔗 Try it here: [ai-meeting-scheduler.vercel.app](https://ai-meeting-scheduler.vercel.app)
+## 🔗 Try it here: [ai-meeting-scheduler-one.vercel.app](https://ai-meeting-scheduler-one.vercel.app)
 
 ## ✨ What it does
 
